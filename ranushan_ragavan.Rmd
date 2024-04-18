@@ -1,0 +1,321 @@
+Indication : on supprimera les "eval=FALSE" présents dans les extraits de code donnés afin d'exécuter correctement les cellules.
+
+<!-- Total 13/20.  -->
+
+
+#### Exercice 1
+
+##### 1. 
+
+Réponse : On sait que E[x]=1/t<+infini quand x~EXP(t)
+donc par la faible des grand nombre Xn=1/n*Sum(Xi) converge en proba vers 1/t.
+soit $f(x)=1/x$ definie sur un ouvert qui contient t et 1/t.
+alors on a $f(X_n)=t$.
+comme$ f(xn)=n/sum(x_{i})$ il s'agit d'un estimateur de t
+
+<!-- Oui 1.-->
+
+##### 2.
+
+```{r}
+N=5000
+n=1000
+t=2
+
+ech=replicate(N,0)
+for(i in 1:N){
+  x=rexp(n,t)
+  hat_t=n/sum(x)
+  ech[i]=sqrt(n)*(hat_t-t)/t
+  
+}
+  
+
+
+hist(ech,freq=FALSE,breaks=100)
+curve(dnorm(x),to=max(x),col='red',add=TRUE)
+
+```
+
+Commentaires :
+L'histogramme et la courbe de la densité de loi normal centré reudite se superpose pour n tres grand
+
+<!-- Oui 2.5.-->
+
+
+##### 3.
+
+Réponse : On a montrer precedemment que $sqrt(n)*(hat_t-t)/t$ converge en loi vers $N(0,1)$ .
+$P(abs(Z)<q_{1-alpha})=1-alpha$ avec Z~N(0,1)
+$P(-q_{alpha/2}<Z<q_{1-alpha/2})$
+Par la question precedente on$P(-q_{alpha/2}<sqrt(n)*(hat_t-t)/t<q_{1-alpha/2})$
+$<=>P(1/(hat_t(1-q/sqrt(n)))>t> 1/(hat_t(1+q/sqrt(n))))$
+Il s'agit d'un intervalle exacte asymptotique car on procède par une approximation qui ne marche que quand n est très grand
+
+<!-- Erreur de calcul 1.5.-->
+
+##### 4.
+
+```{r}
+IC<-function(X,alpha){
+  q=qnorm(1-alpha/2)
+  n=length(X)
+  hat_t=n/sum(X)
+  b1=1/(hat_t*(1+q/sqrt(n)))
+  b2=1/(hat_t*(1-q/sqrt(n)))
+  c(b1,b2)
+}
+```
+
+
+<!-- Oui, cohérent malgré la propagation. 1.5. -->
+
+##### 5. 
+
+##### 5.(a). 
+
+```{r}
+g1=read.csv('data1_guichet1.csv')
+g2=read.csv('data1_guichet2.csv')
+g3=read.csv('data1_guichet3.csv')
+
+hist(g1$guichet1)
+hist(g2$guichet2)
+hist(g3$guichet3)
+```
+
+Commentaires : Les 3 guichet on des histogramme de la meme forme, cependant le guichet 2 semble avoir des temps d'attente beaucoup moins long en effet sa frequence  maximal depasse les 600 tandis que pour les autres guichet elle depasse les 400 sans atteindre 600.
+
+<!-- Oui, mais quelle loi ? 0.5.-->
+
+
+##### 5.(b). 
+
+```{r}
+IC(g1$guichet1,0.05)
+IC(g2$guichet2,0.05)
+IC(g3$guichet3,0.05)
+
+```
+
+Commentaires : On remaque que grace aux histogrammes que les echantillon semble suivre des loi exponentiel.
+En utilisant la fonction IC on obtient les intervalle de confiance et ont remarque que les intervalle de confiance des guichet 1 et 3 ne sont pas disjoint donc il semble suivre la meme loi de proba la majeur partie du temps. Cependant le guichet 2 a un intervalle de confiance disjoint des deux autre il ne suit pas la meme loi que les autre guichet.
+
+<!-- Oui, mais mauvais intervalles à cause de l'erreur de départ. 1.-->
+
+
+##### 6.
+
+##### 6.(a).
+
+```{r}
+g21=read.csv('data2_guichet1.csv')
+g22=read.csv('data2_guichet2.csv')
+hist(g21$guichet1,freq=FALSE)
+hist(g22$guichet2,freq=FALSE)
+```
+
+Commentaires : Leur histogramme fait pensé a des loi normales
+
+<!-- Oui 1. -->
+
+
+##### 6.(b).
+
+```{r}
+x1=g21$guichet1
+x2=g22$guichet2
+xn1=mean(x1)
+xn2=mean(x2)
+var1=var(x1)
+var2=var(x2)
+n1=length(x1)
+n2=length(x2)
+alpha=0.05
+q1=qt(1-alpha/2,n1-1)
+q2=qt(1-alpha/2,n2-1)
+
+IC1=c(xn1-q1*sqrt(n1/var1),xn1+q1*sqrt(n1/var1))
+IC2=c(xn2-q2*sqrt(n2/var1),xn2+q2*sqrt(n2/var2))
+IC1
+IC2
+```
+
+Commentaires : Procedons en calculant les intervalle de confiance en approximant par une loi de student. En on sait que les echantillons suivent des loi de normal de variance et de moyenne inconnu. On va remplacer les varaince par les variance empirique ce qui donnera une approximation par la loi de Student.
+
+Les deux intervalles ne sont pas disjoint cependant on peut pas conclure sur l'egalité de leur moyenne car les intervalle obtenue sont très grande il fautdrait plus d'observation pour avoir des intervalles plus précise et plus petite
+
+<!-- De bonnes choses mais les intervalles ne sont pas bons. 0.5.-->
+
+
+#### Exercice 2
+
+##### 1. 
+
+```{r}
+n=500
+sigma=0.8
+p=0.6
+e1=c(1,0)
+e2=c(0,1)
+I2=cbind(e1,e2)
+sigma=0.8*I2
+mu1=c(-2,1)
+mu2=c(0.3,-3)
+#binormal<-function(mu,cova){
+ # b=rbinom(1,p=0.6)
+  #if(b==1){
+   # x=rnorm(mu[1],cova[1][1])
+#  }
+ # else
+  #  x=rnorm(mu[2],cova[2][2])
+#}
+
+X1=cbind(rnorm(500,-2,0.8),rnorm(500,1,0.8))
+X2=cbind(rnorm(500,0.3,0.8),rnorm(500,-3,0.8))
+
+
+```
+
+<!-- Pour l'idée 0.5-->
+
+##### 2. 
+
+```{r}
+plot(X1,X2)
+```
+
+Commentaires : On voit deux cluster de point distinct.
+Selon moi ce modele sert à identifié les individues issue deux catégorie comme par exemple si X est un echantillon de personne hospitalisé on cherchera a identifié les patient malade, des patient non malade en essayant de les departager par clustering(repéré la classe). 
+
+<!-- Cohérent 1. -->
+
+
+##### 3.
+
+Réponse : Si sigma augmente, la variance augmente également. Les points seront plus eparpillé et moins proche de leur moyenne ce qui rendra l'identification de leur classe d'origine plus complexe et ce qui complexifie tout les probleme de clustering.
+
+<!-- Oui 0.5.-->
+
+
+##### 4. 
+
+```{r}
+norme = function(x){
+  sqrt(sum(x^2))
+} 
+```
+
+```{r}
+grouper<-function(X,mu1,mu2){
+  n=length(X)
+  classe=replicate(n,2)
+  for(i in 1:n){
+    if(norme(X[i]-mu1)<=norme(X[i]-mu2)){
+      classe[i]=1
+    }
+  }
+  classe
+}
+```
+
+<!-- Bien c'est presque ça. 1.5.-->
+
+##### 5.
+
+```{r}
+n=300
+mu1=c(-1,1)
+mu2=c(1.2,-0.5)
+sigma=2
+p=0.2
+
+X1=cbind(rnorm(300,-1,2),rnorm(300,1,2))
+X2=cbind(rnorm(300,1.2,2),rnorm(300,-0.5,2))
+X=cbind(X1,X2)
+
+grouper(X,mu1,mu2)
+mu_origine=
+```
+
+Commentaires : 
+
+<!-- Code non fonctionnel.-->
+
+
+##### 6.
+
+```{r,eval=FALSE}
+plot(X,col=1+groupes)
+plot(X,col=1+groupes_estims)
+```
+
+Commentaires : 
+
+##### 7.
+
+```{r}
+### Votre code ici
+```
+
+Commentaires : 
+
+##### 8.
+
+```{r,eval=FALSE}
+n = 5000 # taille de chaque échantillon
+N = 10 # nombre de simulations pour chaque valeur de sigma
+p = 0.2
+mu1 = ### A COMPLETER
+mu2 = ### A COMPLETER
+
+pas_sigmas = 0.4 # pas d'évolution de sigma
+sigmas = ### A COMPLETER
+
+nb_sigmas = length(sigmas)
+
+mean_performances = replicate(nb_sigmas,0)
+
+for (i in 1:nb_sigmas){
+  sigma = ### A COMPLETER
+  performances = replicate(N,0)
+  for (j in 1:N){
+    ### On simule un échantillon X ### A COMPLETER
+    
+    
+    ### On infère les groupes de X ### A COMPLETER
+    groupes_estims = 
+    
+    ### on enregistre la performance ### A COMPLETER
+    performances[j] = 
+  }
+  ### on moyenne les performances sur les N échantillons ### A COMPLETER
+  mean_performances[i] =
+}
+
+plot(sigmas,mean_performances,col="blue",main="Performance du clustering en fonction de sigma")
+lines(sigmas,mean_performances, col="blue", lty = 2)
+```
+
+Commentaires : 
+
+##### Fin de l'exercice 2 : partie bonus
+
+##### 8. 
+
+Réponse :
+
+```{r}
+### Votre code ici
+```
+
+Commentaires : 
+
+##### 9. 
+
+Réponse :
+
+##### 10. 
+
+Réponse : 
+

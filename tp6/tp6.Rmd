@@ -1,0 +1,102 @@
+---
+title: "Tp6 MM vs MV"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+#Simulation
+```{r}
+U=runif(n=10^4,0,1)
+a=8.9
+fa<-function(u,a)
+{
+  x=1/(1-u)^(1/(a-1))
+  x
+}
+
+X=fa(U,8.9)
+hist(X,breaks=100,freq =FALSE)
+curve((a-1)/x^a,from=1,to=max(X),add=TRUE,col='red')
+```
+
+```{r}
+n=10^4
+a=3.4
+b=6.2
+U1=runif(n=10^4,0,1)
+U2=runif(n=10^4,0,1)
+X=fa(U1,a)
+Y=fa(U2,b)
+min=replicate(n,0)
+for(i in 1:n){
+  min[i]=min(Y[i],X[i])
+}
+hist(min,freq=FALSE,breaks=120)
+curve((a+b-2)/x^(a+b-1),col='red',add=TRUE)
+```
+
+```{r}
+LX=log(X)
+hist(LX,breaks=120,freq=FALSE)
+curve(dexp(x = x,rate=a-1),col='red',add=TRUE)
+```
+# Estimateur
+
+```{r}
+Xn=mean(X)
+a_mm=(2*Xn-1)/(Xn-1)
+
+```
+
+```{r}
+a=3.9
+N=5000
+n=10^4
+â_mm=replicate(N,0)
+â_mv=replicate(N,0)
+for(i in 1:N){
+  U=runif(n,0,1)
+  X=fa(U,a)
+  Xn=mean(X)
+  â_mm[i]=(2*Xn-1)/(Xn-1)
+  â_mv[i]=1+1/mean(log(X))
+}
+hist(sqrt(n)*(â_mm-a),freq=FALSE,breaks=100,col = rgb(red = 1,green = 0, blue = 0, alpha = 0.5))
+hist(sqrt(n)*(â_mv-a),freq=FALSE,breaks=100,add=TRUE,col = rgb(red = 0,green = 0, blue = 1, alpha = 0.5))
+
+#a_mm a une variance plus grande semble donc moins bon
+
+```
+```{r}
+a=1.8
+N=5000
+n=10^4
+â_mm=replicate(N,0)
+â_mv=replicate(N,0)
+for(i in 1:N){
+  U=runif(n,0,1)
+  X=fa(U,a)
+  Xn=mean(X)
+  â_mm[i]=(2*Xn-1)/(Xn-1)
+  â_mv[i]=1+1/mean(log(X))
+}
+hist(sqrt(n)*(â_mm-a),freq=FALSE,breaks=100,col = rgb(red = 1,green = 0, blue = 0, alpha = 0.5))
+hist(sqrt(n)*(â_mv-a),freq=FALSE,breaks=100,add=TRUE,col = rgb(red = 0,green = 0, blue = 1, alpha = 0.5))
+```
+```{r}
+data=read.csv("moby_dick.csv")
+head(data)
+x=data$occurrences
+amv=1+1/mean(log(x))
+plot(ecdf(x))
+curve(1-x^(1-amv),col='red',add=TRUE,from=1,to=max(x))
+curve(pexp(x,rate=amv-1),add=T,col='blue')
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

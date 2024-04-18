@@ -1,0 +1,167 @@
+---
+title: "Tp 8: Black-Scholes discret et bitcoin"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+#b et sigma
+
+traj<-function(Tr,S0,b,sigma){
+  Z=rnorm(Tr)
+  S=replicate(Tr+1,0)
+  S[1]=S0
+  for(i in 2:(Tr+1)){
+    S[i]=S[i-1]*(b+sigma*Z[i-1])+S[i-1]
+  }
+  S
+}
+S=traj(500,100,0.005,0.01)
+plot(S,type='l')
+```
+Le prix augmente
+
+```{r}
+S2=traj(500,100,0.005,0.03)
+plot(S2,type='l',col='red')
+
+S3=traj(500,100,0.005,0.07)
+plot(S3,type='l',col='blue',add=TRUE)
+
+S4=traj(500,100,0.005,0.12)
+plot(S4,type='l',col="green",add=TRUE)
+```
+quand la volatilité augmente, le cours de l’actif s’éloigne de la tendance.
+```{r}
+Tr=100
+N=5000
+S0=100
+sigma=0.05
+b=0.002
+X=replicate(N,0)
+for(i in 1:N){
+  X[i]=traj(Tr,S0,b,sigma)[101]
+}
+hist(X,freq=FALSE,breaks=150,col=rgb(red =0,green=0,blue=1,alpha=0.5))
+
+#hist(log(X),freq=FALSE,breaks=150,add=TRUE,col=rgb(red =1,green=0,blue=0,alpha=0.5))
+```
+```{r}
+hist(log(X),freq=FALSE,breaks=150,col=rgb(red =1,green=0,blue=0,alpha=0.5))
+```
+le log du prix final semble suit une loi normale dont la moyenne croît avec b et décroît avec sigma
+
+```{r}
+n=length(X)
+l=length(which(X<=100*0.5))
+l/n
+l2=length(which(X>=100*1.5))
+l2/n
+l3=length(which(X>=2*100))
+l3/n
+```
+```{r}
+logV<-function(b,sigma,S){
+  N=length(S)
+  sum=0
+  for(i in 2:N){
+    sum=((S[i]-S[i-1])/S[i-1]-b)^2
+  }
+  y=-N/2*log(2*pi*sigma^2)-1/(2*sigma^2)*sum
+  y
+}
+```
+
+```{r}
+data=read.csv("bitcoin.csv")
+head(data)
+last=data$Last
+y=rev(last)
+plot(y,type='l')
+```
+```{r}
+v=replicate(length(y),0)
+for(i in 2:length(y)){
+  v[i]=(y[i]-y[i-1])/y[i-1]
+}
+b=mean(v)
+sigma=var(v)
+b
+sigma
+```
+```{r}
+N = length(S)-1
+Splus = S[2:(N+1)]
+Smoins = S[1:N]
+V = (Splus-Smoins)/Smoins
+hatb = mean(V)
+hatsigma = sd(V)
+hatb
+```
+```{r}
+size = 500
+bs = seq(-0.03,0.03,length.out=500) 
+sigmas = seq(0.001,0.1,length.out=500) 
+
+logVs = matrix(data = replicate(size*size,0),nrow=size,ncol=size) # on crée une
+# # logmatrice de taille size*size ne contenant que des zéros
+for (i in 1:size){
+ b = bs[i]
+ for (j in 1:size){
+  sigma = sigmas[j]
+  logVs[i,j] = logV(b,sigma,S)
+ }
+}
+```
+
+```{r}
+library(ggplot2)
+data = expand.grid(b=bs,sigma=sigmas) # on crée une matrice contenant les
+# valeurs de b croisées avec celles de sigma.
+data$logV = matrix(logVs,ncol = 1,nrow=size*size) # on ajoute à ce dataframe
+# un champ logV qui correspond aux logvraisemblances précedemment calculées
+ggplot(data, aes(b, sigma, fill= logV)) + geom_tile() # on dessine le heatma
+```
+```{r}
+
+exposant = 30
+norm.logV = pmax(0,logVs/max(logVs))^exposant
+data=expand.grid(b=bs,sigma=sigmas)
+data$norm.logV= matrix(norm.logV,ncol = 1,nrow=size*size)
+ggplot(data,aes(b,sigma,fill=norm.logV))+geom_tile() +geom_point(aes(x=hatb,y=hatsigma))
+```
+
+```{r}
+S = traj(T,S0=100,b=0.005,sigma=0.1)
+N = 5000
+S365 = S[365]
+b = hatb
+sigma = hatsigma
+T=365+365
+trajectoires = matrix(replicate(N*T,0),nrow = N, ncol = T)
+
+for (i in 1:N){
+ trajectoires[i,1:365] = S
+ trajectoires[i,365:T] = trajectoires[i,365:T] = traj(365,S0=S365,b,sigma)
+}
+```
+
+```{r}
+T=365+365
+x=1:T
+traj_inf = apply(trajectoires,2,quantile,0.025) # prendre la trajectoire inférieure
+traj_sup = apply(trajectoires,2,quantile,0.975) # prendre la trajectoire supérieure (avec une certaine p
+traj_mean = colMeans(trajectoires)
+plot(x,traj_mean,col="blue",type="l",lty=3) #prédiction moyenne
+lines(x, traj_sup, col="green", lty = 3) #prédiction optimiste
+lines(x, traj_inf, col="red", lty = 3) #prédiction pessimiste
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

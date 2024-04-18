@@ -1,0 +1,69 @@
+---
+title: "tp5"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+# la loi vaut une loi exponentiel
+
+f<-function(m,lambda,x){
+  f<-(x^(m-1)/factorial(m-1))*(lambda^m)*exp(-lambda*x)
+}
+X=seq(0,8,0.1)
+Y=plot(f(5,2,X),col='red',type='l')
+y1=curve(f(1,2,x),add=TRUE,col='green')
+Y2=curve(f(2,2,x),add=TRUE,col='blue')
+
+
+```
+```{r}
+
+```
+
+```{r}
+m=10^15
+sim=rgamma(n=2000,m,1.5)
+
+hist(sim,freq=F,breaks=30)
+curve(f(m,1.5,x),col='red',add=TRUE)
+```
+```{r}
+n=1000
+m=4 
+lambda=3
+
+somme= rexp(n,rate=lambda)+rexp(n,rate=lambda)+rexp(n,rate=lambda)+rexp(n,rate=lambda)
+
+hist(somme,breaks=100,freq=F)
+curve(f(m,lambda,x),add=TRUE,col='red')
+
+```
+```{r}
+m=4
+lambda=3
+z=rgamma(1000,m,lambda)
+Mn=mean(z)
+estlambda=1/(1000*Mn)
+Vn=var(z)
+estm=
+```
+
+```{r}
+for(i in [1;2000])
+  {
+    rgamma(5000,5,5)
+  }
+estl=
+
+
+```
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.

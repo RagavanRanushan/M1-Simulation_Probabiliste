@@ -1,0 +1,121 @@
+---
+title: "Tp9: Estimation par intervalles de confiance, introduction aux tests statistiques"
+output: html_notebook
+---
+
+This is an [R Markdown](http://rmarkdown.rstudio.com) Notebook. When you execute code within the notebook, the results appear beneath the code. 
+
+Try executing this chunk by clicking the *Run* button within the chunk or by placing your cursor inside it and pressing *Ctrl+Shift+Enter*. 
+
+```{r}
+data=read.csv('souris30.csv')
+test=data$poids[data$groupe=='test']
+temoin=data$poids[data$groupe=='temoin']
+
+hist(data$poids,freq=FALSE)
+```
+```{r}
+hist(temoin,freq=FALSE)
+hist(test)
+```
+On peut emettre l'hypothèse de gaussiénneté bien que nous ayons peu de données.
+```{r}
+mtest=mean(test)
+mtemoin=mean(temoin)
+var_temoin=var(temoin)
+var_test=var(test)
+alpha=0.05
+q=qt(1-alpha/2,14)
+IC_test=c(mtest-sqrt(var_test)/sqrt(15)*q,mtest+sqrt(var_test)/sqrt(15)*q)
+IC_test
+```
+"L'IC de niveau 0.95 pour la moyenne temoin est [ 17.07 , 20.07 ]
+
+```{r}
+t.test(test)
+```
+Les intervalles sont similaire on peut donc pas affirmer que les moyennes soit différentes. Il faudrait augmenter le nombre d'observation pour avoir des intervalles plus étroite.
+
+```{r}
+data=read.csv('souris300.csv')
+test=data$poids[data$groupe=='test']
+temoin=data$poids[data$groupe=='temoin']
+temoin
+```
+
+```{r}
+IC1<-function(ech,alpha){
+  n=length(ech)
+  b1=mean(ech)-(sqrt(4*alpha*n+1)-1)/(2*alpha*n)
+  b2=mean(ech)+(sqrt(4*alpha*n+1)+1)/(2*alpha*n)
+  c(b1,b2)
+}
+X=rpois(300,2)
+IC1(X,0.05)
+```
+L'IC de niveau 0.95 pour la moyenne test est [ 1.75 , 2.27 ]
+```{r}
+
+IC2<-function(ech,alpha){
+  q=qnorm(1-alpha/2)
+  mn=mean(ech)
+  n=length(ech)
+  b1=mn-q*sqrt(mn/n)
+  b2=mn+q*sqrt(mn/n)
+  c(b1,b2)
+}
+IC2(X,0.05)
+```
+
+```{r}
+N=10000
+n=5000
+alpha=0.05
+lambda=3
+IC1v=replicate(N,0)
+IC2v=replicate(N,0)
+for(i in 1:N){
+  ech=rpois(n,lambda)
+  if(IC1(ech,alpha)[1]<lambda & IC1(ech,alpha)[2]>lambda){
+    IC1v[i]=1
+  }
+  if(IC2(ech,alpha)[1]<lambda & IC2(ech,alpha)[2]>lambda){
+    IC2v[i]=1
+  }
+}
+mean(IC1v)
+mean(IC2v)
+```
+
+```{r}
+n=4000
+lambda=4.3
+alpha=0.005
+ech=rpois(n,lambda)
+IC1inf = replicate(n,0)
+IC1sup = replicate(n,0)
+IC2inf = replicate(n,0)
+IC2sup = replicate(n,0)
+for (k in 1:n){
+IC1inf[k] = IC1(ech[1:k],alpha)[1]
+IC1sup[k] = IC1(ech[1:k],alpha)[2]
+IC2inf[k] = IC2(ech[1:k],alpha)[1]
+IC2sup[k] = IC2(ech[1:k],alpha)[2]
+}
+x=1:n
+plot(x,IC1inf[x],col="blue",type = "l",lty = 2,ylim=c(lambda-3,lambda+3))
+lines(x, IC1sup[x], col="blue", lty = 2)
+lines(x, IC2sup[x], col="red", lty = 3)
+lines(x, IC2inf[x], col="red", lty = 3)
+abline(a=lambda,b=0,col="green")
+```
+
+
+L'IC devient plus précis quand n augmente.
+
+
+Add a new chunk by clicking the *Insert Chunk* button on the toolbar or by pressing *Ctrl+Alt+I*.
+
+When you save the notebook, an HTML file containing the code and output will be saved alongside it (click the *Preview* button or press *Ctrl+Shift+K* to preview the HTML file).
+
+The preview shows you a rendered HTML copy of the contents of the editor. Consequently, unlike *Knit*, *Preview* does not run any R code chunks. Instead, the output of the chunk when it was last run in the editor is displayed.
